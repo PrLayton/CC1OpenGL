@@ -28,6 +28,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#include "ObjectLoader.h"
+
 EsgiShader basic;
 
 void Initialize()
@@ -59,6 +61,10 @@ void Render()
 
 int main(int argc, char* argv[])
 {
+	ObjectLoader obi = ObjectLoader();
+
+	vector<float> i = obi.loadElements("MontExample1.obj", "f");
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowSize(800, 600);
