@@ -13,5 +13,5 @@ uniform mat4 u_projectionMatrix;
 void main(void)
 {
 	v_texcoords = a_texcoords;
-	gl_Position = /*u_projectionMatrix **/ u_rotationMatrix * u_scaleMatrix * a_position;
+	gl_Position = /*u_projectionMatrix **/ u_rotationMatrix * /*u_scaleMatrix **/ a_position;
 }

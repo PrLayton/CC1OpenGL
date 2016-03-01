@@ -24,11 +24,40 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#include <vector>
+
 EsgiShader basic;
 GLuint textureID;
 GLuint VBO;
 GLuint IBO;
 GLuint VAO;
+
+struct point {
+	std::vector<float> position;
+	std::vector<float> texcoords;
+	std::vector<float> normale;
+};
+
+std::vector<float> positions = {};
+std::vector<float> texcoords;
+std::vector<float> normales;
+
+std::vector<float> points = { 1.000000f, -1.000000f, -1.000000f, 0.748573f, 0.750412f,
+1.000000f, -1.000000f, 1.000000f, 0.749279f, 0.501284f,
+-1.000000f, -1.000000f, 1.000000f, 1.0f, 0.0f,
+-1.000000f, -1.000000f, -1.000000f, 1.0f, 1.0f,
+1.000000f, 1.000000f, -1.000000f, 0.749279f, 0.501284f,
+0.999999f, 1.000000f, 1.000001f, 0.0f, 1.0f,
+-1.000000f, 1.000000f, -1.000000f, 1.0f, 0.0f };
+std::vector<GLushort> indices = { 5, 1, 4,
+								5, 4, 8,
+								3, 7, 8,
+								3, 8, 4,
+								2, 6, 3,
+								6, 7, 3,
+								1,5,2,
+								5,6,2};
+std::vector<GLuint> listOfReadedPoint;
 
 GLuint CreateTexture(const char* nom)
 {
@@ -63,21 +92,66 @@ void Initialize()
 
 	textureID = CreateTexture("Koala.jpg");
 
-
-	const float carre[] = {
+	//pointArray
+	/*const float carre[] = {
 		-0.5f, 0.5f, 0.0f, 0.0f,	
 		-0.5f, -0.5f, 0.0f, 1.0f,	
 		0.5f, 0.5f, 1.0f, 0.0f,		
 		0.5f, -0.5f, 1.0f, 1.0f		
-	};
+	};*/
+
+	/*int index = 0;
+	for (GLushort i = 0; i < 12; i++)
+	{
+		for (GLushort j = 0; j < 3; j++)
+		{
+			bool vertextExist = false;
+			int nbReadForV = 5;
+			int nbReadForVT = 1;
+			int nbReadForVN = 1;
+			index = 0;
+			GLushort k;
+			for ( k = 0; k < indices.size()-3; k+=3)
+			{
+				if (nbReadForV == indices[k] && nbReadForVT == indices[k + 1] && nbReadForVN == indices[k + 2]) {
+					vertextExist = true;
+					break;
+				}
+			}
+			if (!vertextExist) {
+				points.push_back(positions[(nbReadForV - 1) * 3]);
+				points.push_back(positions[(nbReadForV - 1) * 3 + 1]);
+				points.push_back(positions[(nbReadForV - 1) * 3 + 2]);
+
+				points.push_back(texcoords[(nbReadForVT - 1) * 2]);
+				points.push_back(texcoords[(nbReadForVT - 1) * 2 + 1]);
+
+				points.push_back(normales[(nbReadForVN - 1) * 3]);
+				points.push_back(normales[(nbReadForVN - 1) * 3 + 1]);
+				points.push_back(normales[(nbReadForVN - 1) * 3 + 2]);
+
+				listOfReadedPoint.push_back(nbReadForV);
+				listOfReadedPoint.push_back(nbReadForVT);
+				listOfReadedPoint.push_back(nbReadForVN);
+
+				indices.push_back(index++);
+			}
+			else
+			{
+				indices.push_back(k/3);
+			}
+		}
+	}*/
+
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 4, carre, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * points.size()/** 5 * 8*/, /*carre*/ &points[0], GL_STATIC_DRAW);
 
-	const GLushort indices[] = { 0, 1, 2, 3 };
+	//const GLushort indices[] = { 0, 1, 2, 3 };
+
 	glGenBuffers(1, &IBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * 4, indices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indices.size(), &indices[0] /*indices*/, GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -86,10 +160,10 @@ void Initialize()
 	glUseProgram(program);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	auto positionAttrib = glGetAttribLocation(program, "a_position");
-	glVertexAttribPointer(positionAttrib, 2, GL_FLOAT, false, sizeof(float) * 4, 0);
+	glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, false, sizeof(float) * 4, 0);
 	glEnableVertexAttribArray(positionAttrib);
 	auto texcoordsAttrib = glGetAttribLocation(program, "a_texcoords");
-	glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 4, (void*)(2 * sizeof(float)));
+	glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 4, (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(texcoordsAttrib);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
@@ -172,7 +246,7 @@ void Render()
 	glUniform1i(textureLoc0, 0);
 
 	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_SHORT, (void*)0);
 
 	glBindVertexArray(0);
 
