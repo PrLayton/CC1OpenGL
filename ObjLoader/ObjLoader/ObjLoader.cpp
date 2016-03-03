@@ -53,22 +53,53 @@ std::vector<float> normales = {};
 
 // Tableau final avec touts les élements de l'obj, sauf la forme: v1, v2, v3, vt1, vt2, vn1, vn2, vn3, v1...
 // On aura un seul VBO
-std::vector<float> points = { 1.000000f, -1.000000f, -1.000000f, 0.748573f, 0.750412f,
+/*std::vector<float> points = { 1.000000f, -1.000000f, -1.000000f, 0.748573f, 0.750412f,
 1.000000f, -1.000000f, 1.000000f, 0.749279f, 0.501284f,
 -1.000000f, -1.000000f, 1.000000f, 1.0f, 0.0f,
 -1.000000f, -1.000000f, -1.000000f, 1.0f, 1.0f,
 1.000000f, 1.000000f, -1.000000f, 0.749279f, 0.501284f,
 0.999999f, 1.000000f, 1.000001f, 0.0f, 1.0f,
--1.000000f, 1.000000f, -1.000000f, 1.0f, 0.0f };
+-1.000000f, 1.000000f, -1.000000f, 1.0f, 0.0f };*/
+std::vector<float> points = {
+-0.5f, -0.5f, 0.5f,
+0.5f, -0.5f, 0.5f,
+0.5f, 0.5f, 0.5f,
+-0.5f, 0.5f, 0.5f,
+
+0.5f, -0.5f, -0.5f,
+0.5f, 0.5f, -0.5f,
+-0.5f, -0.5f, -0.5f,
+-0.5f, 0.5f, -0.5f,
+
+0.5f, -0.5f, -0.5f,
+-0.5f, -0.5f, -0.5f
+};
+
+const float Texture[]{
+	0.0f, 0.0f,
+	0.0f, 1.f,
+	1.0f, 0.0f,
+	1.0f, 1.0f,
+	0.0f, 0.0f,
+	0.0f, 1.f,
+	1.0f, 0.0f,
+	1.0f, 1.0f
+};
+
 // Tableau final des indices qui se remplie au fil de l'algo avec des indices de sommets de "points" 
-std::vector<GLushort> indices = { 5, 1, 4,
+/*std::vector<GLushort> indices = { 5, 1, 4,
 								5, 4, 8,
 								3, 7, 8,
 								3, 8, 4,
 								2, 6, 3,
 								6, 7, 3,
 								1,5,2,
-								5,6,2};
+								5,6,2,
+5,8,6,
+8,7,6,1,2,3,1,3,4};*/
+std::vector<GLushort> indices = { 0,1,2,0,2,3, 1,4,5,1,5,2 ,0,6,7,0,7,3, 0,1,8,0,8,9, 9,8,5,9,5,7 };
+//std::vector<GLushort> indices = { 0,2,1,0,3,2, 1,5,4,1,2,5 ,0,7,6,0,3,7, 0,8,1,0,9,8, 9,5,8,9,7,5 };
+
 // Liste des sommets déja lut (combinaisont de v/vt/vn)
 std::vector<GLuint> listOfReadedPoint;
 
@@ -138,16 +169,8 @@ void Initialize()
 	// On récupère l'identifiant de la texture créée
 	textureID = CreateTexture("Koala.jpg");
 
-	//pointArray
-	/*const float carre[] = {
-		-0.5f, 0.5f, 0.0f, 0.0f,	
-		-0.5f, -0.5f, 0.0f, 1.0f,	
-		0.5f, 0.5f, 1.0f, 0.0f,		
-		0.5f, -0.5f, 1.0f, 1.0f		
-	};*/
-
 	// Index de sommet que l'on peut créer
-	int index = 0;
+	/*int index = 0;
 	// Pour chaque f (face)
 	for (GLushort i = 0; i < 12; i++)
 	{
@@ -199,9 +222,7 @@ void Initialize()
 				indices.push_back(k/3);
 			}
 		}
-	}
-
-	//const GLushort indices[] = { 0, 1, 2, 3 };
+	}*/
 
 	// Création
 	glGenBuffers(1, &VBO);
@@ -215,7 +236,7 @@ void Initialize()
 	// Définiti comme actif
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	// Allocation
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indices.size(), &indices[0] /*indices*/, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) *indices.size(), &indices[0] /*indices*/, GL_STATIC_DRAW);
 
 	auto program = basic.GetProgram();
 	glUseProgram(program);
@@ -229,10 +250,10 @@ void Initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	auto positionAttrib = glGetAttribLocation(program, "a_position");
 	// Adresse relative dans le VBO
-	glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, false, sizeof(float) * 4, 0);
+	glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, false, 0, 0);
 	glEnableVertexAttribArray(positionAttrib);
 	auto texcoordsAttrib = glGetAttribLocation(program, "a_texcoords");
-	glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 4, (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 8, /*(void*)(3 * sizeof(float))*/&Texture[0]);
 	glEnableVertexAttribArray(texcoordsAttrib);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
@@ -291,13 +312,18 @@ void Render()
 	auto scaleLocation = glGetUniformLocation(program, "u_scaleMatrix");
 	glUniformMatrix4fv(scaleLocation, 1, GL_FALSE, scaleMatrix);
 
-	float time = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+	float time = glutGet(GLUT_ELAPSED_TIME) / 5000.0f;
 	const float rotationMatrix[]{
-		cos(time), -sin(time), 0.0f, 0.0f,
+		cos(time), sin(time), 0.0f, 0.0f,
 		-sin(time), cos(time),0.0f, 0.0f,
-		0.0f, 0.0f, 1.f, 0.0f,
+		0.0f, cos(time), -sin(time), 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
+	/*const float rotationMatrix[]
+	{1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, cos(time), sin(time), 0.0f,
+		0.0f, -sin(time), cos(time), 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f};*/
 	auto rotationLocation = glGetUniformLocation(program, "u_rotationMatrix");
 	glUniformMatrix4fv(rotationLocation, 1, GL_FALSE, rotationMatrix);
 
@@ -322,9 +348,23 @@ void Render()
 	auto textureLoc0 = glGetUniformLocation(program, "u_texture0");
 	glUniform1i(textureLoc0, 0);
 
+	/*static const float triangle[] = {
+		1.0, 0.0, 0.0, 1.0,
+		0.0, 1.0, 0.0, 1.0,
+		0.0, 0.0, 1.0, 1.0,
+		0.0, 0.0, 0.0, 1.0,
+	};
+
+	GLint attrib_color = glGetAttribLocation(program, "a_color");
+	GLint attrib_colorU = glGetUniformLocation(program, "u_color");
+
+	glEnableVertexAttribArray(attrib_color);
+	glVertexAttribPointer(attrib_color, 4, GL_FLOAT, false, sizeof(float) * 4, triangle);
+	glUniform4f(attrib_colorU, 1.0f, 0.0f, 1.0f, 1.0f);*/
+
 	glBindVertexArray(VAO);
 	// Dessiner l'élément array buffer
-	glDrawElements(GL_TRIANGLES, 8, GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, 10*3, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 
 	glutSwapBuffers();
@@ -339,7 +379,7 @@ int main(int argc, char* argv[])
 
 	// Activation de la profondeur et des lights
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_LIGHTING);
+	/*glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
 	GLfloat posLight0[] = { 0.0f,0.0f,-1.0f,0.0f };
@@ -347,7 +387,7 @@ int main(int argc, char* argv[])
 
 	// Application de la position et de la couleur
 	glLightfv(GL_LIGHT0, GL_POSITION, posLight0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);*/
 
 	Initialize();
 
