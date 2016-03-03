@@ -19,6 +19,6 @@ class ObjectLoader
 
 		//Charger un tableau contenant tous les éléments précédés du préfixe voulu
 		//Exemple : v pour certices
-		vector<float> loadElements(string file, string prefix);
+		vector<float> loadElements(string file, string prefix, string delimiter_);
 };
 

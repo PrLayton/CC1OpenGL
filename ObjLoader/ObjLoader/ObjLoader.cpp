@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 {
 	ObjectLoader obi = ObjectLoader();
 
-	vector<float> i = obi.loadElements("MontExample1.obj", "f");
+	vector<float> i = obi.loadElements("Cube.obj", "v", "  ");
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);

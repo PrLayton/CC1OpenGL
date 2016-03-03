@@ -84,11 +84,11 @@ vector<float> ObjectLoader::loadVertices(string file)
 	return v;
 }
 
-vector<float> ObjectLoader::loadElements(string file, string prefix)
+vector<float> ObjectLoader::loadElements(string file, string prefix, string delimiter_)
 {
 	vector<float> v;
 	string line = "line";
-	string delimiter = " ";
+	string delimiter = delimiter_;
 	string temp = "temp";
 	size_t pos(0);
 
