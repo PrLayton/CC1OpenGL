@@ -60,7 +60,7 @@ std::vector<float> normales = {};
 1.000000f, 1.000000f, -1.000000f, 0.749279f, 0.501284f,
 0.999999f, 1.000000f, 1.000001f, 0.0f, 1.0f,
 -1.000000f, 1.000000f, -1.000000f, 1.0f, 0.0f };*/
-std::vector<float> points = {
+/*std::vector<float> points = {
 -0.5f, -0.5f, 0.5f,
 0.5f, -0.5f, 0.5f,
 0.5f, 0.5f, 0.5f,
@@ -69,20 +69,23 @@ std::vector<float> points = {
 0.5f, -0.5f, -0.5f,
 0.5f, 0.5f, -0.5f,
 -0.5f, -0.5f, -0.5f,
--0.5f, 0.5f, -0.5f,
-
-0.5f, -0.5f, -0.5f,
--0.5f, -0.5f, -0.5f
+-0.5f, 0.5f, -0.5f
+};*/
+std::vector<float> points = {
+	-0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+	-0.5f, -0.5f, 0.5f, 0.0f, 1.0f,
+	0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+	0.5f, -0.5f, 0.5f, 1.0f, 1.0f,
+	- 0.5f, 0.5f, -0.5f, 0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+	0.5f, 0.5f, -0.5f, 1.0f, 0.0f,
+	0.5f, -0.5f, -0.5f, 1.0f, 1.0f
 };
 
 const float Texture[]{
 	0.0f, 0.0f,
 	0.0f, 1.f,
-	1.0f, 0.0f,
-	1.0f, 1.0f,
-	0.0f, 0.0f,
-	0.0f, 1.f,
-	1.0f, 0.0f,
+	1.0f, 0.f,
 	1.0f, 1.0f
 };
 
@@ -97,7 +100,8 @@ const float Texture[]{
 								5,6,2,
 5,8,6,
 8,7,6,1,2,3,1,3,4};*/
-std::vector<GLushort> indices = { 0,1,2,0,2,3, 1,4,5,1,5,2 ,0,6,7,0,7,3, 0,1,8,0,8,9, 9,8,5,9,5,7 };
+//std::vector<GLushort> indices = { 0,1,2,0,2,3, 1,4,5,1,5,2 ,0,7,6,0,3,7, 0,4,1,0,6,4, 6,5,4,6,7,5 };
+std::vector<GLushort> indices = { 0, 1, 2, 1, 3, 2,  1,5,3,5,7,3,  2,3,6,3,7,6,  2,6,0,6,4,0,  0,4,1,4,5,1,  6,7,4,7,5,4 };
 //std::vector<GLushort> indices = { 0,2,1,0,3,2, 1,5,4,1,2,5 ,0,7,6,0,3,7, 0,8,1,0,9,8, 9,5,8,9,7,5 };
 
 // Liste des sommets déja lut (combinaisont de v/vt/vn)
@@ -144,7 +148,12 @@ GLuint CreateTexture(const char* nom)
 	// Allocation
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 	// Paramètres de la texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//glGenerateMipmap(GL_TEXTURE_2D);
 
 	stbi_image_free(image);
 
@@ -236,7 +245,7 @@ void Initialize()
 	// Définiti comme actif
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	// Allocation
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) *indices.size(), &indices[0] /*indices*/, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) * indices.size(), &indices[0] /*indices*/, GL_STATIC_DRAW);
 
 	auto program = basic.GetProgram();
 	glUseProgram(program);
@@ -250,10 +259,11 @@ void Initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	auto positionAttrib = glGetAttribLocation(program, "a_position");
 	// Adresse relative dans le VBO
-	glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, false, 0, 0);
+	glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, false, sizeof(float) * 5, 0);
 	glEnableVertexAttribArray(positionAttrib);
 	auto texcoordsAttrib = glGetAttribLocation(program, "a_texcoords");
-	glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 8, /*(void*)(3 * sizeof(float))*/&Texture[0]);
+	//glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 2, /*(void*)(3 * sizeof(float))*/Texture);
+	glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 5, (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(texcoordsAttrib);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
@@ -317,6 +327,7 @@ void Render()
 		cos(time), sin(time), 0.0f, 0.0f,
 		-sin(time), cos(time),0.0f, 0.0f,
 		0.0f, cos(time), -sin(time), 0.0f,
+		//0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 	/*const float rotationMatrix[]
@@ -344,8 +355,11 @@ void Render()
 
 	//Rendre actif sur l'unité de texture 0
 	glActiveTexture(GL_TEXTURE0);
+	// Active la texture correspondante à cet id
 	glBindTexture(GL_TEXTURE_2D, textureID);
+	// Récupère la localisation mémoire de la variable
 	auto textureLoc0 = glGetUniformLocation(program, "u_texture0");
+	// Set la variable
 	glUniform1i(textureLoc0, 0);
 
 	/*static const float triangle[] = {
@@ -364,7 +378,7 @@ void Render()
 
 	glBindVertexArray(VAO);
 	// Dessiner l'élément array buffer
-	glDrawElements(GL_TRIANGLES, 10*3, GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, 8*5, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 
 	glutSwapBuffers();
