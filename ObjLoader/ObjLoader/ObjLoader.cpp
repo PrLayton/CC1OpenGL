@@ -33,7 +33,7 @@
 #include "ObjectLoader.h"
 
 EsgiShader basic;
-// Identifiant de la texture utilsÃ©e
+// Identifiant de la texture utilsée
 GLuint textureID;
 // En rapport avec les positions des sommets
 GLuint VBO;
@@ -48,12 +48,12 @@ GLuint VAO;
 	std::vector<float> normale;
 };*/
 
-//Structure remplis par la premiÃ©re lecture du obj
+//Structure remplis par la premiére lecture du obj
 std::vector<float> positions = {};
 std::vector<float> texcoords = {};
 std::vector<float> normales = {};
 
-// Tableau final avec touts les Ã©lements de l'obj, sauf la forme: v1, v2, v3, vt1, vt2, vn1, vn2, vn3, v1...
+// Tableau final avec touts les élements de l'obj, sauf la forme: v1, v2, v3, vt1, vt2, vn1, vn2, vn3, v1...
 // On aura un seul VBO
 /*std::vector<float> points = { 1.000000f, -1.000000f, -1.000000f, 0.748573f, 0.750412f,
 1.000000f, -1.000000f, 1.000000f, 0.749279f, 0.501284f,
@@ -106,8 +106,10 @@ const float Texture[]{
 std::vector<GLushort> indices = { 0, 1, 2, 1, 3, 2,  1,5,3,5,7,3,  2,3,6,3,7,6,  2,6,0,6,4,0,  0,4,1,4,5,1,  6,7,4,7,5,4 };
 //std::vector<GLushort> indices = { 0,2,1,0,3,2, 1,5,4,1,2,5 ,0,7,6,0,3,7, 0,8,1,0,9,8, 9,5,8,9,7,5 };
 
-// Liste des sommets dÃ©ja lut (combinaisont de v/vt/vn)
+// Liste des sommets déja lut (combinaisont de v/vt/vn)
 std::vector<GLuint> listOfReadedPoint;
+
+int texH, texW;
 
 // FBO pour la partie 2
 struct Framebuffer
@@ -121,9 +123,19 @@ struct Framebuffer
 
 // FBO partie 2
 Framebuffer g_FBO;
+GLuint CreateEmptyTexture(GLuint w, GLuint h)
+{
+	GLuint textureObj;
+	glGenTextures(1, &textureObj);
+	glBindTexture(GL_TEXTURE_2D, textureObj);
+	//rgb4 in 2.0
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	return textureObj;
+}
 bool Framebuffer::CreateFBO(GLuint w, GLuint h)
 {
-	//ColorTex0 = CreateTexture(w, h);
+	ColorTex0 = CreateEmptyTexture(w, h);
 	glGenFramebuffers(1, &FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ColorTex0, 0);
@@ -142,14 +154,16 @@ GLuint CreateTexture(const char* nom)
 	int w, h, comp;
 	int req_comp = 4;
 	auto* image = stbi_load(nom, &w, &h, &comp, req_comp);
+	texH = h;
+	texW = w;
 
 	GLuint textureObj;
 	//Demander de l'identifiant
 	glGenTextures(1, &textureObj);
 	glBindTexture(GL_TEXTURE_2D, textureObj);
 	// Allocation
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-	// ParamÃ©tres de la texture
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	// Paramétres de la texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -177,10 +191,10 @@ void Initialize()
 	basic.LoadFragmentShader("shader.fs");
 	basic.Create();
 
-	// On rÃ©cupÃ©re l'identifiant de la texture crÃ©Ã©e
+	// On récupére l'identifiant de la texture créée
 	textureID = CreateTexture("Koala.jpg");
 
-	// Index de sommet que l'on peut crÃ©er
+	// Index de sommet que l'on peut créer
 	/*int index = 0;
 	// Pour chaque f (face)
 	for (GLushort i = 0; i < 12; i++)
@@ -195,7 +209,7 @@ void Initialize()
 			int nbReadForVT = 1;
 			int nbReadForVN = 1;
 			GLushort k;
-			// On parcourt la liste des points dÃ©ja lu et on regarde si la combinaison v/vt/vn Ã© dÃ©ja Ã©tÃ© traitÃ©e
+			// On parcourt la liste des points déja lu et on regarde si la combinaison v/vt/vn é déja été traitée
 			for ( k = 0; k < listOfReadedPoint.size()-3; k+=3)
 			{
 				if (nbReadForV == listOfReadedPoint[k] && nbReadForVT == listOfReadedPoint[k + 1] && nbReadForVN == listOfReadedPoint[k + 2]) {
@@ -203,14 +217,14 @@ void Initialize()
 					break;
 				}
 			}
-			// Si le point n'Ã©xiste pas
+			// Si le point n'éxiste pas
 			if (!vertextExist) {
-				// On push les coordonÃ©es du sommets
+				// On push les coordonées du sommets
 				points.push_back(positions[(nbReadForV - 1) * 3]);
 				points.push_back(positions[(nbReadForV - 1) * 3 + 1]);
 				points.push_back(positions[(nbReadForV - 1) * 3 + 2]);
 
-				// Les coordonÃ©es de texture
+				// Les coordonées de texture
 				points.push_back(texcoords[(nbReadForVT - 1) * 2]);
 				points.push_back(texcoords[(nbReadForVT - 1) * 2 + 1]);
 
@@ -219,32 +233,32 @@ void Initialize()
 				points.push_back(normales[(nbReadForVN - 1) * 3 + 1]);
 				points.push_back(normales[(nbReadForVN - 1) * 3 + 2]);
 
-				// Le point unique Ã© Ã©tÃ© lu, on l'ajoute dans la liste des points dÃ©ja existants
+				// Le point unique é été lu, on l'ajoute dans la liste des points déja existants
 				listOfReadedPoint.push_back(nbReadForV);
 				listOfReadedPoint.push_back(nbReadForVT);
 				listOfReadedPoint.push_back(nbReadForVN);
 
-				// On crÃ©e un nouvel indice (le sommet n'existait pas)
+				// On crée un nouvel indice (le sommet n'existait pas)
 				indices.push_back(index++);
 			}
 			else
 			{
-				// On rÃ©cupÃ©re l'indice du point que l'on a dÃ©ja lu
+				// On récupére l'indice du point que l'on a déja lu
 				indices.push_back(k/3);
 			}
 		}
 	}*/
 
-	// CrÃ©ation
+	// Création
 	glGenBuffers(1, &VBO);
-	// DÃ©finiti comme actif
+	// Définiti comme actif
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	// Allocation
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * points.size()/** 5 * 8*/, /*carre*/ &points[0], GL_STATIC_DRAW);
 
-	// CrÃ©ation
+	// Création
 	glGenBuffers(1, &IBO);
-	// DÃ©finiti comme actif
+	// Définiti comme actif
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	// Allocation
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) * indices.size(), &indices[0] /*indices*/, GL_STATIC_DRAW);
@@ -252,12 +266,12 @@ void Initialize()
 	auto program = basic.GetProgram();
 	glUseProgram(program);
 
-	// On crÃ©e le VAO
+	// On crée le VAO
 	glGenVertexArrays(1, &VAO);
-	// Qui est alors dÃ©fini comme actif
+	// Qui est alors défini comme actif
 	glBindVertexArray(VAO);
 
-	// Necessaire mais n'est pas stockÃ© dans le VAO
+	// Necessaire mais n'est pas stocké dans le VAO
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	auto positionAttrib = glGetAttribLocation(program, "a_position");
 	// Adresse relative dans le VBO
@@ -275,15 +289,21 @@ void Initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-	// DÃ©sactive ce dont on ne se sert plus
-	glEnableVertexAttribArray(0);
+	// Désactive ce dont on ne se sert plus
+	//glEnableVertexAttribArray(0);
+
+	bool valid = g_FBO.CreateFBO(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+	//bool valid = g_FBO.CreateFBO(texW, texH);
+	assert(valid == true);
 }
 
 void Terminate()
 {
-	g_FBO.DestroyFBO();
 	glDeleteBuffers(1, &VBO);
 	glDeleteBuffers(1, &IBO);
+
+	g_FBO.DestroyFBO();
+
 	DestroyTexture(textureID);
 	basic.Destroy();
 }
@@ -309,7 +329,9 @@ void Render()
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
 	auto program = basic.GetProgram();
 	glUseProgram(program);
@@ -355,11 +377,11 @@ void Render()
 	auto projLocation = glGetUniformLocation(program, "u_projectionMatrix");
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, projectionMatrix);
 
-	//Rendre actif sur l'unitÃ© de texture 0
+	//Rendre actif sur l'unité de texture 0
 	glActiveTexture(GL_TEXTURE0);
-	// Active la texture correspondante Ã© cet id
+	// Active la texture correspondante é cet id
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	// RÃ©cupÃ©re la localisation mÃ©moire de la variable
+	// Récupére la localisation mémoire de la variable
 	auto textureLoc0 = glGetUniformLocation(program, "u_texture0");
 	// Set la variable
 	glUniform1i(textureLoc0, 0);
@@ -379,9 +401,20 @@ void Render()
 	glUniform4f(attrib_colorU, 1.0f, 0.0f, 1.0f, 1.0f);*/
 
 	glBindVertexArray(VAO);
-	// Dessiner l'Ã©lÃ©ment array buffer
+	// Dessiner l'élément array buffer
 	glDrawElements(GL_TRIANGLES, 8*5, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
+
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, g_FBO.FBO);
+	GLuint width = glutGet(GLUT_WINDOW_WIDTH);
+	GLuint height = glutGet(GLUT_WINDOW_HEIGHT);
+	glBlitFramebuffer(0, 0, 0 + width, 0 + height, 0, 0, 0 + width, 0 + height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	glutSwapBuffers();
 }
