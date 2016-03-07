@@ -12,6 +12,13 @@ ObjectLoader::~ObjectLoader()
 	vertices.clear();
 }
 
+void ObjectLoader::Initialize(string file, string delimiter_)
+{
+	vertices = loadElements(file, "v", delimiter_);
+	tex = loadElements(file, "vt", delimiter_);
+	normals = loadElements(file, "vn", delimiter_);
+}
+
 vector<float> ObjectLoader::getVertices()
 {
 	return vertices;
@@ -20,6 +27,7 @@ vector<float> ObjectLoader::getVertices()
 vector<float> ObjectLoader::loadVertices(string file)
 {
 	vector<float> v;
+	vertices = vector<float>();
 	string line = "line";
 	string delimiter = " ";
 	string temp = "temp";
@@ -65,9 +73,10 @@ vector<float> ObjectLoader::loadVertices(string file)
 				tempC[i] = stof(line);
 				i = 0;
 				pos = 0;
-				v.push_back(tempC[0]);
-				v.push_back(tempC[1]);
-				v.push_back(tempC[2]);
+				vertices.push_back(tempC[0]);
+				vertices.push_back(tempC[1]);
+				vertices.push_back(tempC[2]);
+
 			}
 		}
 
@@ -81,7 +90,7 @@ vector<float> ObjectLoader::loadVertices(string file)
 
 	cout << "Le fichier" << file << "a été chargé" << endl;
 
-	return v;
+	return vertices;
 }
 
 vector<float> ObjectLoader::loadElements(string file, string prefix, string delimiter_)
@@ -109,28 +118,29 @@ vector<float> ObjectLoader::loadElements(string file, string prefix, string deli
 	{
 		while (getline(myfile, line))
 		{
-			if (line.substr(0, 1).compare(prefix) == 0) {
+			if (line.substr(0, line.find(" ")).compare(prefix) == 0) {
 				//On supprime le V
 				temp = line.substr(0, pos);
-				std::cout << temp << std::endl;
 				line.erase(0, pos + delimiter.length() + 1);
 
-				while ((pos = line.find(delimiter)) != std::string::npos) {
+				for (int i = 0; i < line.length(); i++) {
+					//start
+					if (line[i] == ' ' || line[i] == '\n') {
+						if (temp.length() > 0) {
+							if(temp.compare(" ") != 0)
+							v.push_back(stof(temp));
+						}
+						temp = "";
+					}
 
-					//On prend X et Y, etc...
-					temp = line.substr(0, pos);
-					//if(temp.substr(0, 1) == "-")
-					std::cout << temp << " ";
-					line.erase(0, pos + delimiter.length());
-					v.push_back(stof(temp));
+					temp += line[i];
 
-					i++;
+					if (i == line.length() - 1) {
+						if (temp.compare(" ") != 0)
+							v.push_back(stof(temp));
+					}
+
 				}
-				//On prend la dernière composante
-				std::cout << line << " " << endl;
-				v.push_back(stof(line));
-				i = 0;
-				pos = 0;
 
 			}
 		}
@@ -146,4 +156,149 @@ vector<float> ObjectLoader::loadElements(string file, string prefix, string deli
 	cout << "Le fichier" << file << "a été chargé" << endl;
 
 	return v;
+}
+
+vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, string tripletDelimiter)
+{
+	indices.clear();
+	indices = vector<int>();
+
+	elements.clear();
+	elements = vector<float>();
+	vector<int> tempIndices;
+	string line = "line";
+	string temp = "temp";
+	size_t pos(0);
+
+	int cNumber(3); //Nombre de constantes faisant partie des triplets a/b/c
+
+	//Faire une vérification pour avoir obligatoirement un OBJ
+	cout << "Chargement des faces..." << endl;
+
+	ifstream myfile(file, ios::in);
+
+
+	if (myfile.is_open())
+	{
+
+		while (getline(myfile, line))
+		{
+			if (line.substr(0, 1).compare("f") == 0) {
+				
+				size_t tripletPos(0);
+				//On supprime le V
+				temp = line.substr(0, pos);
+				pos = line.find(tupleDelimiter);
+				line.erase(0, pos + tupleDelimiter.length() );
+				temp = "";
+				for (int i = 0; i < line.length(); i++) {
+					//start
+					char a = line[i];
+					if (line[i] == ' ' || line[i] == '/') {
+						if (temp.length() > 0) {
+							if (temp.compare(" ") != 0 && temp.compare("/") != 0) {
+								tempIndices.push_back(stoi(temp));
+								cout << temp << " ";
+							}
+								
+						}
+						if (i < line.length() - 1 && line[i] == '/' && line[i + 1] == '/') {
+							tempIndices.push_back(0);
+						}
+						temp = "";
+					}
+					else {
+						temp += line[i];
+
+						if (i == line.length() - 1) {
+							if (temp.compare(" ") != 0) {
+								tempIndices.push_back(stoi(temp));
+								cout << temp << " ";
+							}
+								
+							
+						}
+					}
+
+					
+
+				}
+				/*
+				//On trouve les triplets A/B/C en les isolants dans des tableaux
+				while ((pos = line.find(tupleDelimiter)) != string::npos)
+				{
+					temp = line.substr(0, pos);
+
+					//On sépare chacune des parties du triplet
+					
+					cNumber = 1;
+					while ((tripletPos = temp.find(tripletDelimiter)) != std::string::npos) { //On vérifie si il reste encore le tuplDelimiter
+						tempIndices.push_back(stoi(temp.substr(0, tripletPos)));
+						temp.erase(0, tripletPos + tripletDelimiter.length());
+						cNumber++;
+					}
+					tempIndices.push_back(stoi(temp));
+
+					//On supprime le triplet pour passer au suivant
+					line.erase(0, pos + tupleDelimiter.length());
+
+					cout << temp << endl;
+
+					
+				}
+				temp = line.substr(0, pos);
+				while ((tripletPos = temp.find(tripletDelimiter)) != std::string::npos) { //On vérifie si il reste encore le tuplDelimiter
+					tempIndices.push_back(stoi(temp.substr(0, tripletPos)));
+					temp.erase(0, tripletPos + tripletDelimiter.length());
+				}
+				tempIndices.push_back(stoi(temp));
+				*/
+			}
+			cout << endl;
+		}
+
+		myfile.close();
+	}
+	else
+	{
+		cout << "Impossible de charger le fichier" << file << endl;
+	}
+
+	//Une fois qu'on a récupéré toutes les informations du fichier, on va les trier pour avoir toutes les valeurs dans le bon ordre
+	/*
+	for (int a = 0; a < cNumber; a++) {
+		for (int i = a; i < tempC.size(); i += cNumber) {
+			v.push_back(tempC[i]);
+		}
+	}
+	*/
+	int indice(0);
+	for (int i = 0; i < tempIndices.size(); i+= cNumber*3) {
+		for (int a = 0; a < cNumber; a++) {
+			for (int j = 0; j < cNumber * 3; j += cNumber) {
+				indice = tempIndices[j + i + a];
+				indices.push_back(indice);
+				
+			}
+		}
+		
+	}
+
+	if (tex.size() < 1) {
+		tex.assign(vertices.size(), 0);
+	}
+
+	if (normals.size() < 1) {
+		normals.assign(vertices.size(), 0);
+	}
+
+	for (int i = 0; i < indices.size(); i+=3) {
+		elements.push_back(vertices[indices[i]]);
+		elements.push_back(tex[indices[i+1]]);
+		elements.push_back(normals[indices[i]+2]);
+	}
+
+	cout << "Le fichier" << file << "a été chargé" << endl;
+
+	return elements;
 }

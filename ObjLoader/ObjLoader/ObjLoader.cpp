@@ -63,7 +63,9 @@ int main(int argc, char* argv[])
 {
 	ObjectLoader obi = ObjectLoader();
 
-	vector<float> i = obi.loadElements("Cube.obj", "v", "  ");
+	obi.Initialize("cube.obj", "  ");
+	//vector<float> v = obi.loadElements("cube.obj","v",  "  ");
+	vector<float> i = obi.getObjFaces("cube.obj", "  ", "//");
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
