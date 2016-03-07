@@ -172,11 +172,14 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 
 	int cNumber(3); //Nombre de constantes faisant partie des triplets a/b/c
 
+	vector<string> indexedElements;
+	string indexedLine;
+	bool canAdd = true;
+
 	//Faire une vérification pour avoir obligatoirement un OBJ
 	cout << "Chargement des faces..." << endl;
 
 	ifstream myfile(file, ios::in);
-
 
 	if (myfile.is_open())
 	{
@@ -186,7 +189,7 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 			if (line.substr(0, 1).compare("f") == 0) {
 				
 				size_t tripletPos(0);
-				//On supprime le V
+				//On supprime le f
 				temp = line.substr(0, pos);
 				pos = line.find(tupleDelimiter);
 				line.erase(0, pos + tupleDelimiter.length() );
@@ -203,7 +206,7 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 								
 						}
 						if (i < line.length() - 1 && line[i] == '/' && line[i + 1] == '/') {
-							tempIndices.push_back(0);
+							tempIndices.push_back(1);
 						}
 						temp = "";
 					}
@@ -272,6 +275,7 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 		}
 	}
 	*/
+	/*
 	int indice(0);
 	for (int i = 0; i < tempIndices.size(); i+= cNumber*3) {
 		for (int a = 0; a < cNumber; a++) {
@@ -283,6 +287,7 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 		}
 		
 	}
+	*/
 
 	if (tex.size() < 1) {
 		tex.assign(vertices.size(), 0);
@@ -292,12 +297,43 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 		normals.assign(vertices.size(), 0);
 	}
 
-	for (int i = 0; i < indices.size(); i+=3) {
-		elements.push_back(vertices[indices[i]]);
-		elements.push_back(tex[indices[i+1]]);
-		elements.push_back(normals[indices[i]+2]);
+
+	
+
+	for (int i = 0; i < tempIndices.size(); i += 3) {
+
+		indexedLine = (to_string(tempIndices[i]) + to_string(tempIndices[i+1]) + to_string(tempIndices[i+2]));
+
+		canAdd = true;
+		for (int b = 0; b < indexedElements.size(); b++) {
+
+			//On compare les différents triplets pour savoir si ils sont égaux et donc ne pas les ajouter dans le tableau
+			if (indexedElements[b].compare(indexedLine) == 0 ) {
+				canAdd = false;
+			}
+			
+
+		}
+
+		if (canAdd) {
+			indexedElements.push_back(indexedLine);
+
+			for (int j = 0; j < 3; j++) {
+				elements.push_back(vertices[tempIndices[i] - 1 + j]);
+			}
+			for (int j = 0; j < 2; j++) {
+				elements.push_back(tex[tempIndices[i + 1] - 1 + j]);
+			}
+			for (int j = 0; j < 3; j++) {
+				elements.push_back(normals[tempIndices[i + 2] - 1 + j]);
+			}
+
+			
+		}
+
 	}
 
+	indices = tempIndices;
 	cout << "Le fichier" << file << "a été chargé" << endl;
 
 	return elements;

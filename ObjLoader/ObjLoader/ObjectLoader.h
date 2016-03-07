@@ -13,9 +13,10 @@ class ObjectLoader
 		ObjectLoader();
 		~ObjectLoader();
 		vector<float> vertices;
-		vector<float> elements;
 		vector<float> tex;
 		vector<float> normals;
+
+		vector<float> elements;
 		vector<int> indices;
 
 		void Initialize(string file, string delimiter_);
