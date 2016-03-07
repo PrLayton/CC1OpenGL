@@ -299,7 +299,7 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 
 
 	
-
+	int precIndex = 0;
 	for (int i = 0; i < tempIndices.size(); i += 3) {
 
 		indexedLine = (to_string(tempIndices[i]) + to_string(tempIndices[i+1]) + to_string(tempIndices[i+2]));
@@ -308,8 +308,11 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 		for (int b = 0; b < indexedElements.size(); b++) {
 
 			//On compare les différents triplets pour savoir si ils sont égaux et donc ne pas les ajouter dans le tableau
+			precIndex = b;
 			if (indexedElements[b].compare(indexedLine) == 0 ) {
 				canAdd = false;
+				
+				break;
 			}
 			
 
@@ -328,12 +331,11 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 				elements.push_back(normals[tempIndices[i + 2] - 1 + j]);
 			}
 
+			//On ajoute un autre indice car on a trouvé aucun point correspondant
 			
 		}
-
+		indices.push_back(precIndex);
 	}
-
-	indices = tempIndices;
 	cout << "Le fichier" << file << "a été chargé" << endl;
 
 	return elements;
