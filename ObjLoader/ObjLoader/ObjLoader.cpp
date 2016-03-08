@@ -298,9 +298,9 @@ void Render()
 
 	// Matrices
 	const float scaleMatrix[]{
-		0.005f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.005f,0.0f, 0.0f,
-		0.0f, 0.0f, 0.005f, 0.0f,
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.5f,0.0f, 0.0f,
+		0.0f, 0.0f, 0.5f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 	auto scaleLocation = glGetUniformLocation(program, "u_scaleMatrix");

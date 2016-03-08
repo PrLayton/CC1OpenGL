@@ -18,7 +18,7 @@ varying vec4 v_color;
 void main(void)
 {
 	v_texcoords = a_texcoords;
-	gl_Position = /*u_projectionMatrix **/ u_rotationMatrix * /*u_scaleMatrix * */ a_position;
+	gl_Position = /*u_projectionMatrix **/ u_rotationMatrix * u_scaleMatrix *  a_position;
 
 	//v_color = a_color;
 }
