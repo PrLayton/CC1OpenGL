@@ -4,6 +4,9 @@ using namespace std;
 #include <vector>
 #include <iostream>
 #include <fstream>
+
+#include "GL/glew.h"
+#include "GL/freeglut.h"
 class ObjectLoader
 {
 	private:
@@ -24,6 +27,8 @@ class ObjectLoader
 		vector<float> getVertices();
 
 		vector<float> loadVertices(string file);
+
+		vector<GLushort> getIndicesToGLushort();
 
 		//Charger un tableau contenant tous les éléments précédés du préfixe voulu
 		//Exemple : v pour certices

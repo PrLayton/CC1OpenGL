@@ -32,6 +32,8 @@
 
 #include "ObjectLoader.h"
 
+using namespace std;
+
 EsgiShader basic;
 // Identifiant de la texture utilsée
 GLuint textureID;
@@ -73,6 +75,9 @@ std::vector<float> normales = {};
 -0.5f, -0.5f, -0.5f,
 -0.5f, 0.5f, -0.5f
 };*/
+
+ObjectLoader ob = ObjectLoader();
+
 std::vector<float> points = {
 	-0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
 	-0.5f, -0.5f, 0.5f, 0.0f, 1.0f,
@@ -129,7 +134,7 @@ GLuint CreateEmptyTexture(GLuint w, GLuint h)
 	glGenTextures(1, &textureObj);
 	glBindTexture(GL_TEXTURE_2D, textureObj);
 	//rgb4 in 2.0
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	return textureObj;
 }
@@ -186,6 +191,9 @@ void DestroyTexture(GLuint textureObj)
 
 void Initialize()
 {
+	
+	points = ob.elements;
+	indices = ob.getIndicesToGLushort();
 	glewInit();
 	basic.LoadVertexShader("shader.vs");
 	basic.LoadFragmentShader("shader.fs");
@@ -193,61 +201,6 @@ void Initialize()
 
 	// On récupére l'identifiant de la texture créée
 	textureID = CreateTexture("Koala.jpg");
-
-	// Index de sommet que l'on peut créer
-	/*int index = 0;
-	// Pour chaque f (face)
-	for (GLushort i = 0; i < 12; i++)
-	{
-		// Pour chaque trio de tuple (v/vt/vn)
-		for (GLushort j = 0; j < 3; j++)
-		{
-			// On par du principe que le point n'existe pas
-			bool vertextExist = false;
-			// On lit ce qu'il y a dans le fichier (ici la ligne 36 de objet2)
-			int nbReadForV = 5;
-			int nbReadForVT = 1;
-			int nbReadForVN = 1;
-			GLushort k;
-			// On parcourt la liste des points déja lu et on regarde si la combinaison v/vt/vn é déja été traitée
-			for ( k = 0; k < listOfReadedPoint.size()-3; k+=3)
-			{
-				if (nbReadForV == listOfReadedPoint[k] && nbReadForVT == listOfReadedPoint[k + 1] && nbReadForVN == listOfReadedPoint[k + 2]) {
-					vertextExist = true;
-					break;
-				}
-			}
-			// Si le point n'éxiste pas
-			if (!vertextExist) {
-				// On push les coordonées du sommets
-				points.push_back(positions[(nbReadForV - 1) * 3]);
-				points.push_back(positions[(nbReadForV - 1) * 3 + 1]);
-				points.push_back(positions[(nbReadForV - 1) * 3 + 2]);
-
-				// Les coordonées de texture
-				points.push_back(texcoords[(nbReadForVT - 1) * 2]);
-				points.push_back(texcoords[(nbReadForVT - 1) * 2 + 1]);
-
-				// Les normales
-				points.push_back(normales[(nbReadForVN - 1) * 3]);
-				points.push_back(normales[(nbReadForVN - 1) * 3 + 1]);
-				points.push_back(normales[(nbReadForVN - 1) * 3 + 2]);
-
-				// Le point unique é été lu, on l'ajoute dans la liste des points déja existants
-				listOfReadedPoint.push_back(nbReadForV);
-				listOfReadedPoint.push_back(nbReadForVT);
-				listOfReadedPoint.push_back(nbReadForVN);
-
-				// On crée un nouvel indice (le sommet n'existait pas)
-				indices.push_back(index++);
-			}
-			else
-			{
-				// On récupére l'indice du point que l'on a déja lu
-				indices.push_back(k/3);
-			}
-		}
-	}*/
 
 	// Création
 	glGenBuffers(1, &VBO);
@@ -261,7 +214,7 @@ void Initialize()
 	// Définiti comme actif
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 	// Allocation
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(float) * indices.size(), &indices[0] /*indices*/, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * indices.size(), &indices[0] /*indices*/, GL_STATIC_DRAW);
 
 	auto program = basic.GetProgram();
 	glUseProgram(program);
@@ -275,12 +228,19 @@ void Initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	auto positionAttrib = glGetAttribLocation(program, "a_position");
 	// Adresse relative dans le VBO
-	glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, false, sizeof(float) * 5, 0);
+	glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, false, sizeof(float) * 8, 0);
 	glEnableVertexAttribArray(positionAttrib);
 	auto texcoordsAttrib = glGetAttribLocation(program, "a_texcoords");
 	//glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 2, /*(void*)(3 * sizeof(float))*/Texture);
-	glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 5, (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * 8, (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(texcoordsAttrib);
+
+	
+	auto normalAttrib = glGetAttribLocation(program, "a_normal");
+
+	glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, false, sizeof(float) * 8, (void*)(5 * sizeof(float)));
+	glEnableVertexAttribArray(normalAttrib);
+	
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
 	// Ne rend plus actif
@@ -338,9 +298,9 @@ void Render()
 
 	// Matrices
 	const float scaleMatrix[]{
-		1.f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.f,0.0f, 0.0f,
-		0.0f, 0.0f, 1.f, 0.0f,
+		0.005f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.005f,0.0f, 0.0f,
+		0.0f, 0.0f, 0.005f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 	auto scaleLocation = glGetUniformLocation(program, "u_scaleMatrix");
@@ -402,7 +362,7 @@ void Render()
 
 	glBindVertexArray(VAO);
 	// Dessiner l'élément array buffer
-	glDrawElements(GL_TRIANGLES, 8*5, GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, ob.elements.size() , GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -421,11 +381,11 @@ void Render()
 
 int main(int argc, char* argv[])
 {
-	ObjectLoader obi = ObjectLoader();
-
-	obi.Initialize("cube.obj", "  ");
-	//vector<float> v = obi.loadElements("cube.obj","v",  "  ");
-	vector<float> i = obi.getObjFaces("cube.obj", "  ", "//");
+	string fileName;
+	cout << "Entrez le nom du fichier OBJ a ouvrir" << endl;
+	cin >> fileName;
+	ob.Initialize(fileName, "  ");
+	ob.getObjFaces(fileName, "  ", "/");
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
