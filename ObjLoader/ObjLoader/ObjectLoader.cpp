@@ -85,7 +85,7 @@ vector<float> ObjectLoader::loadVertices(string file)
 	}
 	
 
-	cout << "Le fichier" << file << "a été chargé" << endl;
+	cout << "Le fichier" << file << "a ete charge" << endl;
 
 	return vertices;
 }
@@ -159,7 +159,7 @@ vector<float> ObjectLoader::loadElements(string file, string prefix, string deli
 	}
 
 
-	cout << "Le fichier" << file << "a été chargé" << endl;
+	cout << "Le fichier" << file << "a ete charge" << endl;
 
 	return v;
 }
