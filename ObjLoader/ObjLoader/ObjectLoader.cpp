@@ -18,14 +18,20 @@ void ObjectLoader::Initialize(string file, string delimiter_)
 	tex = loadElements(file, "vt", delimiter_);
 	normals = loadElements(file, "vn", delimiter_);
 
-	indiceLength = 1;
+	indiceLength = 3;
 	if (tex.size() < 1) {
 		hasTexture = false;
-		indiceLength += 1;
+	}
+	else {
+		hasTexture = true;
+		indiceLength += 2;
 	}
 	if (normals.size() < 1) {
 		hasNormals = false;
-		indiceLength += 1;
+	}
+	else {
+		hasNormals = true;
+		indiceLength += 3;
 	}
 }
 

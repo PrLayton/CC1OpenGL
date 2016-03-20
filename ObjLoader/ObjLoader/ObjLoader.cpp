@@ -178,7 +178,7 @@ void Initialize()
 	if (ob.hasTexture) {
 		auto texcoordsAttrib = glGetAttribLocation(program, "a_texcoords");
 		//On passe les coordonnées de texture
-		glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * ob.indiceLength, (void*)(3 * sizeof(float)));
+		glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * ob.indiceLength, (void*)(ob.indiceLength-2 * sizeof(float)));
 		glEnableVertexAttribArray(texcoordsAttrib);
 	}
 	
@@ -186,7 +186,7 @@ void Initialize()
 		// Fait correspondre le shader et les normales
 		auto normalAttrib = glGetAttribLocation(program, "a_normal");
 		//On passe les coordonnées de normales
-		glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, false, sizeof(float) * ob.indiceLength, (void*)(5 * sizeof(float)));
+		glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, false, sizeof(float) * ob.indiceLength, (void*)(ob.indiceLength-3 * sizeof(float)));
 		glEnableVertexAttribArray(normalAttrib);
 	}
 	

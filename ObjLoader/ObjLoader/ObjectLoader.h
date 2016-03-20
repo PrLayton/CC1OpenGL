@@ -19,7 +19,7 @@ class ObjectLoader
 		bool hasNormals;
 		bool hasTexture;
 
-		int indiceLength = ;
+		int indiceLength = 8;
 
 		vector<float> vertices;
 		vector<float> tex;
