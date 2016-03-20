@@ -10,11 +10,17 @@ using namespace std;
 class ObjectLoader
 {
 	private:
-		
+
 
 	public:
 		ObjectLoader();
 		~ObjectLoader();
+
+		bool hasNormals;
+		bool hasTexture;
+
+		int indiceLength = 3;
+
 		vector<float> vertices;
 		vector<float> tex;
 		vector<float> normals;

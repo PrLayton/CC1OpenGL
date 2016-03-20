@@ -21,4 +21,4 @@ void main(void)
 	gl_Position = /*u_projectionMatrix **/ u_rotationMatrix * /*u_scaleMatrix * */ a_position;
 
 	//v_color = a_color;
-}
+}	
