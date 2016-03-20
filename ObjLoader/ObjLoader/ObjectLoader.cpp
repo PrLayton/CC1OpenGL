@@ -17,6 +17,16 @@ void ObjectLoader::Initialize(string file, string delimiter_)
 	vertices = loadElements(file, "v", delimiter_);
 	tex = loadElements(file, "vt", delimiter_);
 	normals = loadElements(file, "vn", delimiter_);
+
+	indiceLength = 1;
+	if (tex.size() < 1) {
+		hasTexture = false;
+		indiceLength += 1;
+	}
+	if (normals.size() < 1) {
+		hasNormals = false;
+		indiceLength += 1;
+	}
 }
 
 vector<float> ObjectLoader::getVertices()
@@ -240,16 +250,6 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 		cout << "Impossible de charger le fichier" << file << endl;
 	}
 
-	if (tex.size() < 1) {
-		tex.push_back(0);
-		tex.push_back(1);
-	}
-
-	if (normals.size() < 1) {
-		normals.assign(vertices.size(), 0);
-	}
-
-
 	
 	int precIndex = 0;
 	for (int i = 0; i < tempIndices.size(); i += 3) {
@@ -280,20 +280,25 @@ vector<float> ObjectLoader::getObjFaces(string file, string tupleDelimiter, stri
 				cout << vertices[ (tempIndices[i] - 1) * 3 + j] << " ";
 			}
 
-			cout << " (" << (tempIndices[i + 1] - 1) * 2 << ") ";
+			if (hasTexture) {
+				cout << " (" << (tempIndices[i + 1] - 1) * 2 << ") ";
 
-			for (int j = 0; j < 2; j++) {
-				elements.push_back(tex[ (tempIndices[i + 1] - 1)*2 + j]);
-				cout << tex[ (tempIndices[i + 1] - 1)*2 + j] << " ";
+				for (int j = 0; j < 2; j++) {
+					elements.push_back(tex[(tempIndices[i + 1] - 1) * 2 + j]);
+					cout << tex[(tempIndices[i + 1] - 1) * 2 + j] << " ";
+				}
 			}
+			
 
+			if (hasNormals) {
+				cout << " (" << (tempIndices[i + 2] - 1) * 3 << ") ";
 
-			cout << " (" << (tempIndices[i + 2] - 1) * 3 << ") ";
-
-			for (int j = 0; j < 3; j++) {
-				elements.push_back(normals[ (tempIndices[i + 2] - 1)*3 + j]);
-				cout << normals[ (tempIndices[i + 2] - 1)*3 + j] << " ";
+				for (int j = 0; j < 3; j++) {
+					elements.push_back(normals[(tempIndices[i + 2] - 1) * 3 + j]);
+					cout << normals[(tempIndices[i + 2] - 1) * 3 + j] << " ";
+				}
 			}
+			
 			cout << endl;
 			//On ajoute un autre indice car on a trouvé aucun point correspondant
 			//cout << indexedLine << endl;

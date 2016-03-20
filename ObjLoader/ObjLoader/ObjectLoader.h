@@ -19,7 +19,7 @@ class ObjectLoader
 		bool hasNormals;
 		bool hasTexture;
 
-		int indiceLength = 3;
+		int indiceLength = ;
 
 		vector<float> vertices;
 		vector<float> tex;
@@ -41,5 +41,8 @@ class ObjectLoader
 		vector<float> loadElements(string file, string prefix, string delimiter_);
 
 		vector<float> getObjFaces(string file, string tupleDelimiter /*Ce qui sépare les n*uplets de toute la ligne*/, string tripletDelimiter /*ce qui sépare les n éléments de chaque n*uplet, on considère temporairement qu'il y en a toujours 3*/);
+
+
+
 };
 
