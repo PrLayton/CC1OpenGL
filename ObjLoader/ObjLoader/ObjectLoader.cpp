@@ -85,7 +85,7 @@ vector<float> ObjectLoader::loadVertices(string file)
 	}
 	
 
-	cout << "Le fichier" << file << "a été chargé" << endl;
+	cout << "Le fichier" << file << "a ete charge" << endl;
 
 	return vertices;
 }
@@ -127,7 +127,7 @@ vector<float> ObjectLoader::loadElements(string file, string prefix, string deli
 			if (line.substr(0, line.find(" ")).compare(prefix) == 0) {
 				//On supprime le V
 				temp = line.substr(0, pos);
-				line.erase(0, pos + delimiter.length() + 1);
+				line.erase(0, pos + delimiter.length());
 
 				for (int i = 0; i < line.length(); i++) {
 					//start
@@ -159,7 +159,7 @@ vector<float> ObjectLoader::loadElements(string file, string prefix, string deli
 	}
 
 
-	cout << "Le fichier" << file << "a été chargé" << endl;
+	cout << "Le fichier" << file << "a ete charge" << endl;
 
 	return v;
 }
