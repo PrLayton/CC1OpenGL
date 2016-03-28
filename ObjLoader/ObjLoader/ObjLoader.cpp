@@ -1,8 +1,7 @@
 #ifdef _WIN32
 
+// Librairies
 #pragma comment(lib, "opengl32.lib")
-//For resize
-#pragma comment(lib,"glu32.lib")
 #pragma comment(lib, "freeglut.lib")
 
 #ifdef GLEW_STATIC
@@ -30,6 +29,7 @@
 // Pour les tableaux
 #include <vector>
 
+// Fonction de travail
 #include "ObjectLoader.h"
 
 using namespace std;
@@ -43,9 +43,10 @@ GLuint VBO;
 GLuint IBO;
 // Manager des VBO
 GLuint VAO;
-
+// Pour rajouter un z buffer
 GLuint RBO;
 
+// L'objet qui va travailler avec l'obj
 ObjectLoader ob = ObjectLoader();
 
 // Tableau final avec touts les élements de l'obj, sous la forme: v1, v2, v3, vt1, vt2, vn1, vn2, vn3, v1...
@@ -70,7 +71,7 @@ GLuint CreateEmptyTexture(GLuint w, GLuint h)
 	GLuint textureObj;
 	glGenTextures(1, &textureObj);
 	glBindTexture(GL_TEXTURE_2D, textureObj);
-	//rgb4 in 2.0
+	//Autre méthode pour avoir la version noir et blanc
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_INTENSITY, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, nullptr);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -100,6 +101,7 @@ void Framebuffer::DestroyFBO()
 	glDeleteTextures(1, &ColorTex0);
 }
 
+// Fonctions pour la tex
 GLuint CreateTexture(const char* nom)
 {
 	int w, h, comp;
@@ -132,11 +134,14 @@ void DestroyTexture(GLuint textureObj)
 	glDeleteTextures(1, &textureObj);
 }
 
-
+// Initialisation des données
 void Initialize()
 {
+	// Récupération des éléments générés
 	points = ob.elements;
 	indices = ob.getIndicesToGLushort();
+
+	// Chargement du shader
 	glewInit();
 	basic.LoadVertexShader("shader.vs");
 	basic.LoadFragmentShader("shader.fs");
@@ -145,14 +150,14 @@ void Initialize()
 	// On récupére l'identifiant de la texture créée
 	textureID = CreateTexture("wood.jpg"); //Koala.jpg
 
-	// Création
+	// Création du vertex buffer object
 	glGenBuffers(1, &VBO);
 	// Définiti comme actif
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	// Allocation
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * points.size(), &points[0], GL_STATIC_DRAW);
 
-	// Création
+	// Création de l'index buffer object
 	glGenBuffers(1, &IBO);
 	// Définiti comme actif
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
@@ -175,22 +180,24 @@ void Initialize()
 	glVertexAttribPointer(positionAttrib, 3, GL_FLOAT, false, sizeof(float) * ob.indiceLength, 0);
 	glEnableVertexAttribArray(positionAttrib);
 
+	// Si on a des coordonnées de texture
 	if (ob.hasTexture) {
 		auto texcoordsAttrib = glGetAttribLocation(program, "a_texcoords");
 		//On passe les coordonnées de texture
-		glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * ob.indiceLength, (void*)(ob.indiceLength-2 * sizeof(float)));
+		glVertexAttribPointer(texcoordsAttrib, 2, GL_FLOAT, false, sizeof(float) * ob.indiceLength, (void*)(((ob.hasNormals) ? ob.indiceLength - 5 : ob.indiceLength -2) * sizeof(float)));
 		glEnableVertexAttribArray(texcoordsAttrib);
 	}
-	
+
+	// Si on a des coordonnées pour les normales
 	if (ob.hasNormals) {
 		// Fait correspondre le shader et les normales
 		auto normalAttrib = glGetAttribLocation(program, "a_normal");
 		//On passe les coordonnées de normales
-		glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, false, sizeof(float) * ob.indiceLength, (void*)(ob.indiceLength-3 * sizeof(float)));
+		glVertexAttribPointer(normalAttrib, 3, GL_FLOAT, false, sizeof(float) * ob.indiceLength, (void*)(ob.indiceLength - 3 * sizeof(float)));
 		glEnableVertexAttribArray(normalAttrib);
 	}
-	
-	
+
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
 
 	// Ne rend plus actif
@@ -205,6 +212,7 @@ void Initialize()
 	assert(valid == true);
 }
 
+// Destruction des objects à la fin du programme
 void Terminate()
 {
 	glDeleteBuffers(1, &VBO);
@@ -216,12 +224,10 @@ void Terminate()
 	basic.Destroy();
 }
 
+// Pour le redimesionnement de la fenêtre
 void Resize(int width, int height)
 {
 	glViewport(0, 0, width, height);
-	//glMatrixMode(GL_PROJECTION);
-	//glu32
-	//gluPerspective(45, (float)width / (float)height, 1.5, 20);
 }
 
 void Update()
@@ -231,11 +237,11 @@ void Update()
 
 void Render()
 {
-	
+	// Première passe
 	glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer.FBO);
 
 	// Passe de couleur de fond
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(0.8f, 0.7f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_TEXTURE_2D);
@@ -251,14 +257,15 @@ void Render()
 
 	// Matrices
 	const float scaleMatrix[]{
-		0.5f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.5f,0.0f, 0.0f,
-		0.0f, 0.0f, 0.5f, 0.0f,
+		0.4f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.4f,0.0f, 0.0f,
+		0.0f, 0.0f, 0.4f, 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 	auto scaleLocation = glGetUniformLocation(program, "u_scaleMatrix");
 	glUniformMatrix4fv(scaleLocation, 1, GL_FALSE, scaleMatrix);
 
+	// Rotation autour de z
 	float time = glutGet(GLUT_ELAPSED_TIME) / 3000.0f;
 	const float rotationMatrix[]{
 		cos(time), sin(time), 0.0f, 0.0f,
@@ -269,28 +276,38 @@ void Render()
 	};
 	auto rotationLocation = glGetUniformLocation(program, "u_rotationMatrix");
 	glUniformMatrix4fv(rotationLocation, 1, GL_FALSE, rotationMatrix);
+
+	// Rotation autour de y
 	const float rotationMatrix2[]
 	{ cos(time), 0.0f, sin(time), 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		-sin(time), 0.0f, cos(time), 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f};
+		0.0f, 0.0f, 0.0f, 1.0f };
 	auto rotationLocation2 = glGetUniformLocation(program, "u_rotationMatrix2");
 	glUniformMatrix4fv(rotationLocation2, 1, GL_FALSE, rotationMatrix2);
 
-	/*float r = glutGet(GLUT_WINDOW_WIDTH) * 2.0f;
-	float l = -r;
-	float t = glutGet(GLUT_WINDOW_HEIGHT) / 2.0f;
-	float b = -t;
-	float n = -1.f;
-	float f = 1.f;
+	float right = glutGet(GLUT_WINDOW_WIDTH) / 2.0f;
+	float left = -right;
+	float top = glutGet(GLUT_WINDOW_HEIGHT) / 2.0f;
+	float bottom = -top;
+	float _near = -1.f;
+	float _far = 1.f;
+	// Projection orthographic
+	/*const float projectionMatrix[]{
+	2.0f / (right - left), 0.0f, 0.0f, 0.0f,
+	0.0f, 2.0f / (top - bottom),0.0f, 0.0f,
+	0.0f, 0.0f, - 2.0f / (_far - _near), 0.0f,
+	-(right+ left) / (right- left), -(top + bottom) / (top - bottom), -(_far + _near) / (_far - _near), 1.0f
+	};*/
+	// Projection perspective
 	const float projectionMatrix[]{
-		2.f / (r - 1), 0.0f, 0.0f, 0.0f,
-		0.0f, 2.0f / (t - b),0.0f, 0.0f,
-		0.0f, 0.0f, 2.f / (f - n), 0.0f,
-		-(r + 1) / (r - 1), -(t + b) / (t - b), -(f + n) / (f - n), 1.0f
+		2.0f * _near / (right - left), 0.0f, 0.0f, 0.0f,
+		0.0f, 2.0f * _near / (top - bottom),0.0f, 0.0f,
+		(right + left) / (right - left), (top + bottom) / (top - bottom), -(_far + _near) / (_far - _near) , - 1.0f,
+		0.0f, 0.0f, - 2.0f * _far * _near / (_far - _near), 0.0f
 	};
 	auto projLocation = glGetUniformLocation(program, "u_projectionMatrix");
-	glUniformMatrix4fv(projLocation, 1, GL_FALSE, projectionMatrix);*/
+	glUniformMatrix4fv(projLocation, 1, GL_FALSE, projectionMatrix);
 
 	//Rendre actif sur l'unité de texture 0
 	glActiveTexture(GL_TEXTURE0);
@@ -303,20 +320,20 @@ void Render()
 
 	glBindVertexArray(VAO);
 	// Dessiner l'élément array buffer
-	glDrawElements(GL_TRIANGLES, ob.elements.size() , GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, ob.elements.size(), GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 
 	// On passe sur l'ecran
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	// Efface le buffer
-	glClearColor(0.0f, 0.5f, 0.0f, 1.0f);
+	glClearColor(0.7f, 0.6f, 0.4f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
+	// Seconde passe
 	glUniform1i(postProcess, true);
 
-	// Seconde passe
 	glBindVertexArray(VAO);
 	// Dessiner l'élément array buffer
 	glDrawElements(GL_TRIANGLES, ob.elements.size(), GL_UNSIGNED_SHORT, (void*)0);
@@ -325,7 +342,7 @@ void Render()
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, _frameBuffer.FBO);
 	GLuint width = glutGet(GLUT_WINDOW_WIDTH);
 	GLuint height = glutGet(GLUT_WINDOW_HEIGHT);
-	glBlitFramebuffer(0, 0, 0 + width, 0 + height, 0, 0, 0 + width/3, 0 + height/3, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	glBlitFramebuffer(0, 0, width, height, width * 2 / 3, height * 2 / 3, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	glutSwapBuffers();
 }
@@ -333,9 +350,14 @@ void Render()
 int main(int argc, char* argv[])
 {
 	string fileName;
-	cout << "Entrez le nom du fichier OBJ a ouvrir" << endl;
+	// Texte de description
+	cout << "Bienvenue sur notre programme de chargement de fichier OBJ." << endl;
+	cout << "Ce programme a ete realise par Julien Geiger et Baptiste Marechaux." << endl << endl;
+	cout << "Entrez le nom du fichier OBJ a ouvrir (exemple: table.obj)" << endl;
+	cout << "cube1 : pas de coordonnees de texture | cube2 : avec des coordonnees de texture" << endl;
 	cin >> fileName;
 	ob.Initialize(fileName, "  ");
+	// Affichage des faces traitées
 	ob.getObjFaces(fileName, "  ", "/");
 
 	glutInit(&argc, argv);
@@ -345,7 +367,7 @@ int main(int argc, char* argv[])
 
 	// Activation de la profondeur et des lights
 	glEnable(GL_DEPTH_TEST);
-	/*glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
 	GLfloat posLight0[] = { 0.0f,0.0f,-1.0f,0.0f };
@@ -353,7 +375,7 @@ int main(int argc, char* argv[])
 
 	// Application de la position et de la couleur
 	glLightfv(GL_LIGHT0, GL_POSITION, posLight0);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);*/
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
 
 	Initialize();
 
